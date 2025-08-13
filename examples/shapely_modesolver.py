@@ -3,6 +3,29 @@
 Flexible mode solver example for fundamental modes for isotropic media
 by David Hutchings, James Watt School of Engineering, University of Glasgow
 David.Hutchings@glasgow.ac.uk
+
+Features added over basic examples
+
+1. Uses shapely python library for manipulation and analysis of geometric 
+objects in the Cartesian plane. It allows polygon regions to be employed.
+
+2. smooth option applies a 2x2 cell moving average to permittivity values
+
+3. Contour plots of Stokes parameters are available. These are pure real 
+values and determined from both H and E field values (E co-located using a 
+2x2 cell moving average) rather than plane-wave approximation of one field 
+component. S0 is the irradiance, values are scaled to S0(max) and contours 
+are at -3dB intervals. Additionally, average values over modal 
+cross-section are computed.
+S0 = Re(E_x H_y^* -E_y H_x^*) = S.z_unit (Irradiance)
+S1 = Re(E_x H_y^* +E_y H_x^*)            (modal normal birefringence)
+S2 = Re(E_y H_y^* -E_x H_x^*)            (modal diagonal birefringence)
+S3 = Im(E_y H_y^* +E_x H_x^*) = 0        (modal circular birefringence)
+
+Integrated Optical Isolators (planned for: Springer Series in Optical Sciences)
+chapter: Theory of Faraday effect and waveguide mode conversion
+David C. Hutchings
+ 
 """
 
 import numpy
@@ -13,8 +36,7 @@ from matplotlib import ticker
 from scipy import signal
 plt.rcParams.update({'font.size': 25})
 
-"""Define cross-section geometry of simulation
-each element tuple contains
+"""Define cross-section geometry of simulation each element tuple contains
 ("label",shapely.Polygon(coordinates),eps) for isotropic media
 shapely.box(xmin, ymin, xmax, ymax) is shorthand method for box polygons
 units should match units of wavelength wl
@@ -62,9 +84,9 @@ def epsfunc(x_, y_):
     for i in range(1,len(geom)):
         xybounds = geom[i][1].bounds
         for ix in range(xw.size):
-            if ((xw[ix] >= xybounds[0]) & (xw[ix] <= xybounds[2])): 
+            if (xybounds[0] <= xw[ix] <= xybounds[2]): 
                 for iy in range(yw.size):
-                    if ((yw[iy] >= xybounds[1]) & (yw[iy] <= xybounds[3])):
+                    if (xybounds[1] <= yw[iy] <= xybounds[3]):
                         if shapely.covers(geom[i][1],shapely.Point(xw[ix],yw[iy])):
                             working[ix,iy] = numpy.array(geom[i][2])
                             
